@@ -6,8 +6,11 @@
 #include <sstream>
 #include <cstdint>
 
+namespace Kaspersky {
+
 struct Hash {
     uint64_t data[2];
+
     bool operator<(const Hash& other) const {
         if (data[0] < other.data[0])
             return true;
@@ -39,4 +42,6 @@ struct Hash {
         return ss.str();
     }
 };
+
+} // namespace Kaspersky
 #endif // HASH_H

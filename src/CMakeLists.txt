@@ -1,18 +1,4 @@
-cmake_minimum_required(VERSION 3.15) # минимальная версия CMake
-project(scanner LANGUAGES CXX)
-
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# Автоматический экспорт всех символов в DLL
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-
-# Каталоги вывода
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-# Создание динамической библиотеки scanner_core
+# создание динамической библиотеки scanner_core
 add_library(scanner_core SHARED
     scanner/Scanner.h
     scanner/Scanner.cpp
@@ -23,17 +9,19 @@ add_library(scanner_core SHARED
     scanner/Logger.cpp
     scanner/MD5FileHasher.h
     scanner/MD5FileHasher.cpp
-    md5/md5.h
-    md5/md5.cpp
+    utils/Clock.h
+    ../external/hash-library/md5.h
+    ../external/hash-library/md5.cpp
 )
 
-target_include_directories(scanner_core PRIVATE ${CMAKE_SOURCE_DIR}/md5)
+target_include_directories(scanner_core PRIVATE ${CMAKE_SOURCE_DIR}/external)
+target_include_directories(scanner_core PRIVATE ${CMAKE_SOURCE_DIR}/src)
 
-# Создание исполняемого файла scanner
+# создание исполняемого файла scanner
 add_executable(scanner
     main.cpp
 )
 
 target_link_libraries(scanner PRIVATE scanner_core)
 
-target_include_directories(scanner PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(scanner PRIVATE ${CMAKE_SOURCE_DIR}/external/cxxopts/include)

@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
     try {
         result = options.parse(argc, argv);
     } catch (const cxxopts::exceptions::exception &e) {
-        std::cout << e.what();
+        std::cerr << e.what();
         return 1;
     }
 
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // вызов основной логики
+    // работа основной логики
     Scanner scanner(result[PATH_OPT.long_opt].as<std::string>(),
                     result[BASE_OPT.long_opt].as<std::string>(),
                     result[LOG_OPT.long_opt].as<std::string>());
@@ -79,6 +79,7 @@ int main(int argc, char *argv[]) {
                      "Malware files:     " << metrics.malwareFiles       <<    "\n" <<
                      "Failed to analyse: " << metrics.analysisErrorFiles <<    "\n";
     }
+
 
 
     // MalwareHashBase base(result[BASE_OPT.long_opt].as<std::string>());

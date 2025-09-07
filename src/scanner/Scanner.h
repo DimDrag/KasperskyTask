@@ -7,18 +7,18 @@
 #include "MalwareHashBase.h"
 #include "Logger.h"
 
-enum class ScannerError {
+enum class FolderToExamineError {
     Ok,
     NoSuchPath,
     NotADirectory,
     NoAccess
 };
 
-const std::map<ScannerError, std::string_view> SCANNER_ERROR_MESSAGES {
-    {ScannerError::Ok,            "Folder is ok"},
-    {ScannerError::NoSuchPath,    "The specified directory path does not exist"},
-    {ScannerError::NotADirectory, "The specified path is not a directory"},
-    {ScannerError::NoAccess,      "No access to directory"},
+const std::map<FolderToExamineError, std::string_view> SCANNER_ERROR_MESSAGES {
+    {FolderToExamineError::Ok,            "Folder is ok"},
+    {FolderToExamineError::NoSuchPath,    "The specified directory path does not exist"},
+    {FolderToExamineError::NotADirectory, "The specified path is not a directory"},
+    {FolderToExamineError::NoAccess,      "No access to directory"},
 };
 
 using Duration = std::chrono::duration<double, std::milli>;
@@ -33,10 +33,10 @@ class Scanner {
 public:
     Scanner();
     Scanner(const std::string &folderPath, const std::string &hashBase, const std::string &logfile);
-    void setFolderToExaminePath(std::string &folderPath);
-    void setHashBasePath(std::string &hashBase);
-    void setLogFile(std::string &logfile);
-    ScannerError checkFolderToExamine() const noexcept;
+    void setFolderToExaminePath(const std::string &folderPath);
+    void setHashBasePath(const std::string &hashBase);
+    void setLogFile(const std::string &logfile);
+    FolderToExamineError checkFolderToExamine() const noexcept;
     bool check();
     bool process();
     Metrics getProcessMetrics();

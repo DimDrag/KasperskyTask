@@ -1,5 +1,7 @@
 #include "MD5FileHasher.h"
 
+#include <fstream>
+
 std::optional<std::string> MD5FileHasher::fromFile(const std::string& filePath) {
     std::ifstream file(filePath, std::ios::binary);
     if (!file.is_open() || !file)

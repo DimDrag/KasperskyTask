@@ -6,6 +6,8 @@
 #include <fstream>
 #include <string_view>
 
+#include "utils/Clock.h"
+
 enum class LogError {
     Ok,
     NoSuchPath,
@@ -29,7 +31,9 @@ public:
     LogError checkLogFile() const noexcept;
     void startLogging();
     void endLogging();
-    void log(std::string_view pathToFile, std::string_view hash, std::string_view verdict);
+    void log(std::string_view pathToFile, std::string_view hash,
+             std::string_view verdict,
+             std::string_view time = Kaspersky::Clock::getTimeNow());
 private:
     void printLogHeader();
     void printLogBottom();
@@ -38,6 +42,7 @@ private:
     std::string   m_logPath;       //!< путь к файлу лога
     std::ofstream m_logFile;       //!< файл лога
     bool m_startedLogging = false; //!< логирование началось
+    bool m_loggedSmth     = false; //!< что-то залогировалось
 };
 
 #endif // LOGGER_H

@@ -15,29 +15,29 @@ Scanner::Scanner(const std::string &folderPath,
     m_hashBase(hashBase),
     m_logger(logfile) { }
 
-void Scanner::setFolderToExaminePath(std::string &folderPath) {
+void Scanner::setFolderToExaminePath(const std::string &folderPath) {
     m_folderPathToExamine = folderPath;
 }
 
-void Scanner::setHashBasePath(std::string &hashBase) {
+void Scanner::setHashBasePath(const std::string &hashBase) {
     m_hashBase.setBasePath(hashBase);
 }
 
-void Scanner::setLogFile(std::string &logfile) {
+void Scanner::setLogFile(const std::string &logfile) {
     m_logger.setLogPath(logfile);
 }
 
-ScannerError Scanner::checkFolderToExamine() const noexcept {
+FolderToExamineError Scanner::checkFolderToExamine() const noexcept {
     if (!std::filesystem::exists(m_folderPathToExamine))
-        return ScannerError::NoSuchPath;
+        return FolderToExamineError::NoSuchPath;
     if (!std::filesystem::is_directory(m_folderPathToExamine))
-        return ScannerError::NotADirectory;
+        return FolderToExamineError::NotADirectory;
     try {
         std::filesystem::directory_iterator it(m_folderPathToExamine);
     } catch (const std::filesystem::filesystem_error& e) {
-        return ScannerError::NoAccess;
+        return FolderToExamineError::NoAccess;
     }
-    return ScannerError::Ok;
+    return FolderToExamineError::Ok;
 }
 
 bool Scanner::check() {
@@ -50,7 +50,7 @@ bool Scanner::check() {
         std::cerr << LOG_ERROR_MESSAGES.at(err) << "\n";
         errorOccured = true;
     }
-    if (auto err = checkFolderToExamine(); err != ScannerError::Ok) {
+    if (auto err = checkFolderToExamine(); err != FolderToExamineError::Ok) {
         std::cerr << SCANNER_ERROR_MESSAGES.at(err) << "\n";
         errorOccured = true;
     }
@@ -64,7 +64,8 @@ Scanner::Metrics Scanner::getProcessMetrics() {
 bool Scanner::processFile(const std::string &path) {
     m_processedFiles++;
     if (auto hash = MD5FileHasher::fromFile(path); hash) {
-        if (auto verdict = m_hashBase.findHashVerdict(Hash::fromString(hash.value())); verdict) {
+        if (auto verdict = m_hashBase.findIndexedHashVerdict(
+                Kaspersky::Hash::fromString(hash.value())); verdict) {
             m_logger.log(path, hash.value(), verdict.value());
             m_malwareFiles++;
         }
@@ -91,7 +92,7 @@ bool Scanner::process() {
         for (const auto& entry : std::filesystem::recursive_directory_iterator(root_path)) {
             if (entry.is_directory())
                 continue;
-            processFile(entry.path().string());
+            processFile(entry.path().lexically_normal().string());
         }
     } catch (const std::filesystem::filesystem_error& e) {
         std::cerr << "Ошибка файловой системы: " << e.what() << std::endl;

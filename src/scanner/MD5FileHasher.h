@@ -1,9 +1,8 @@
 #ifndef MD5FILEHASHER_H
 #define MD5FILEHASHER_H
 
-#include <fstream>
-#include "md5.h"
 #include <optional>
+#include <hash-library/md5.h>
 
 class MD5FileHasher {
 public:

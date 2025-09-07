@@ -1,13 +1,6 @@
 #include "Logger.h"
 
 #include <filesystem>
-#include <chrono>
-#include <ctime>
-#include <iomanip>
-#include <sstream>
-#include <time.h>
-
-#include <iostream>
 
 constexpr std::string_view LOG_HEADER    = "----------------Scanner log start----------------\n";
 constexpr std::string_view LOG_BOTTOM    = "-----------------Scanner log end-----------------\n";
@@ -56,30 +49,24 @@ void Logger::endLogging() {
         printLogBottom();
         m_logFile.close();
         m_startedLogging = false;
+        m_loggedSmth = false;
     }
 }
 
-void Logger::log(std::string_view pathToFile, std::string_view hash, std::string_view verdict) {
-    std::string strToWrite;
+void Logger::log(std::string_view pathToFile, std::string_view hash,
+                 std::string_view verdict, std::string_view time) {
     if (!m_startedLogging) {
         startLogging();
-    } else {
-        strToWrite += LOG_SEPARATOR;
     }
 
-    auto now = std::chrono::system_clock::now();
-    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
-    std::tm tm_buf{};
-#if defined(_WIN32) || defined(_WIN64)
-    localtime_s(&tm_buf, &now_c);
-#else
-    localtime_r(&now_c, &tm_buf);
-#endif
-    std::ostringstream timeSS;
-    timeSS << std::put_time(&tm_buf, "%H:%M:%S");
-
+    std::string strToWrite;
+    if (m_loggedSmth) {
+        strToWrite += LOG_SEPARATOR;
+    } else {
+        m_loggedSmth = true;
+    }
     strToWrite +=
-        timeSS.str() + "\n" +
+        std::string(time) + "\n" +
         "File path: " + std::string(pathToFile) + "\n" +
         "MD5 hash:  " + std::string(hash)       + "\n" +
         "Verdict:   " + std::string(verdict)    + "\n";
