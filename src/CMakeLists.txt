@@ -1,14 +1,6 @@
 cmake_minimum_required(VERSION 3.15) # минимальная версия CMake
 project(scanner LANGUAGES CXX)
 
-# Запрещаем сборку прямо в src/
-if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-    message(FATAL_ERROR
-        "Сборка внутри каталога src запрещена.\n"
-        "Создайте каталог ../build и соберите проект так:\n"
-        "  cmake -S src -B build")
-endif()
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
