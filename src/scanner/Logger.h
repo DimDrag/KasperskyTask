@@ -6,7 +6,7 @@
 #include <fstream>
 #include <string_view>
 
-#include "utils/Clock.h"
+#include "Clock.h"
 
 enum class LogError {
     Ok,

@@ -10,7 +10,7 @@ TEST(Scanner, OpenPath) {
     EXPECT_EQ(scanner.checkFolderToExamine(), FolderToExamineError::NotADirectory);
 
     TemporaryDirectory noRead(TEST_DATA_DIR"/test_no_read_dir");
-    noRead.makeInaccessible();
+    noRead.blockRead();
     scanner.setFolderToExaminePath(noRead.getPath());
     EXPECT_EQ(scanner.checkFolderToExamine(), FolderToExamineError::NoAccess);
 
@@ -25,9 +25,9 @@ TEST(Scanner, Scan) {
                     LOG_PATH);
 
     TemporaryFile noReadFile1(std::string(DIR_WITH_TEST_FILES) + "no_read_file1.txt");
-    noReadFile1.makeInaccessible();
+    noReadFile1.blockRead();
     TemporaryFile noReadFile2(std::string(DIR_WITH_TEST_FILES) + "no_read_file2.txt");
-    noReadFile2.makeInaccessible();
+    noReadFile2.blockRead();
 
     bool ok = scanner.process();
     EXPECT_EQ(ok, true);

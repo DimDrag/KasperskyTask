@@ -13,7 +13,7 @@ public:
     TemporaryPath& operator=(const TemporaryPath& other) = delete;
     virtual ~TemporaryPath();
     std::string getPath();
-    virtual bool makeInaccessible();
+    virtual bool blockRead();
 #if defined(_WIN32) || defined(_WIN64)
     void setHandle(HANDLE handle);
     void closeHandle();

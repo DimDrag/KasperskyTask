@@ -12,8 +12,9 @@ add_executable(test_scanner
     helpers/TemporaryDirectory.cpp
 )
 
-target_include_directories(test_scanner PRIVATE ${CMAKE_SOURCE_DIR}/src)
 target_include_directories(test_scanner PRIVATE ${CMAKE_SOURCE_DIR}/tests/helpers)
+target_include_directories(test_scanner PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(test_scanner PRIVATE ${CMAKE_SOURCE_DIR}/src/utils)
 
 target_link_libraries(test_scanner PRIVATE
     scanner_core

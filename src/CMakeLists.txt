@@ -16,6 +16,7 @@ add_library(scanner_core SHARED
 
 target_include_directories(scanner_core PRIVATE ${CMAKE_SOURCE_DIR}/external)
 target_include_directories(scanner_core PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(scanner_core PRIVATE ${CMAKE_SOURCE_DIR}/src/utils)
 
 # создание исполняемого файла scanner
 add_executable(scanner
@@ -25,3 +26,4 @@ add_executable(scanner
 target_link_libraries(scanner PRIVATE scanner_core)
 
 target_include_directories(scanner PRIVATE ${CMAKE_SOURCE_DIR}/external/cxxopts/include)
+target_include_directories(scanner PRIVATE ${CMAKE_SOURCE_DIR}/src/utils)

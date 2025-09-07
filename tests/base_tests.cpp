@@ -27,7 +27,7 @@ TEST(Base, Open) {
     EXPECT_EQ(hashBase.checkBaseFile(), BaseError::WrongExtension);
 
     TemporaryFile noRead(TEST_DATA_DIR"/test_no_read.csv");
-    noRead.makeInaccessible();
+    noRead.blockRead();
     hashBase.setBasePath(noRead.getPath());
     EXPECT_EQ(hashBase.checkBaseFile(), BaseError::NoPermissions);
 

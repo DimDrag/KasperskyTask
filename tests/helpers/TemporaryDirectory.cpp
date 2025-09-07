@@ -7,7 +7,7 @@ TemporaryDirectory::TemporaryDirectory(const std::string &path)
     std::filesystem::create_directory(path);
 }
 
-bool TemporaryDirectory::makeInaccessible() {
+bool TemporaryDirectory::blockRead() {
 #if defined(_WIN32) || defined(_WIN64)
     std::string path = getPath();
     HANDLE hDir = CreateFileW(
@@ -26,6 +26,6 @@ bool TemporaryDirectory::makeInaccessible() {
     }
     return true;
 #else
-    return TemporaryPath::makeInaccessible();
+    return TemporaryPath::blockRead();
 #endif
 }

@@ -45,9 +45,9 @@ TEST(Logger, Open) {
     logger.setLogPath(DIR_WITH_TEST_FILES);
     EXPECT_EQ(logger.checkLogFile(), LogError::NotAFile);
 
-    TemporaryFile noRead(TEST_DATA_DIR"/test_no_read.log");
-    noRead.makeInaccessible();
-    logger.setLogPath(noRead.getPath());
+    TemporaryFile noWrite(TEST_DATA_DIR"/test_no_write.log");
+    noWrite.blockWrite();
+    logger.setLogPath(noWrite.getPath());
     EXPECT_EQ(logger.checkLogFile(), LogError::NoPermissions);
 
     TemporaryFile logOk(TEST_DATA_DIR"/test_log_ok.log");

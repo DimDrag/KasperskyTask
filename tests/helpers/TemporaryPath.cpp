@@ -14,7 +14,7 @@ TemporaryPath::~TemporaryPath() {
 std::string TemporaryPath::getPath() {
     return m_path;
 }
-bool TemporaryPath::makeInaccessible() {
+bool TemporaryPath::blockRead() {
 #if defined(_WIN32) || defined(_WIN64)
     return false;
 #else

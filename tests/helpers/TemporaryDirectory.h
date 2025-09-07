@@ -6,7 +6,7 @@
 class TemporaryDirectory : public TemporaryPath {
 public:
     TemporaryDirectory(const std::string &path);
-    bool makeInaccessible() override;
+    bool blockRead() override;
 };
 
 #endif // TEMPORARY_DIRECTORY_H
