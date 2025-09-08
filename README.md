@@ -11,6 +11,9 @@
 
 - Для парсинга опций командной строки был использован [cxxopts][https://github.com/jarro2783/cxxopts]
 
+- Зависимости были добавлены через git submodule
+
+
 [https://github.com/stbrumme/hash-library]: https://github.com/stbrumme/hash-library
 [https://github.com/jarro2783/cxxopts]: https://github.com/jarro2783/cxxopts
 
@@ -24,12 +27,6 @@ cmake --build build
 ```
 
 Запускать тесты можно из любой директории. Главное не удалять файлы, лежащие в tests/data, поскольку это "тренировочные" файлы для тестов.
-
-Обновлять зависимости можно с помощью команды
-
-```bash
-git submodule update --init --recursive
-```
 
 ## Логи
 
