@@ -1,7 +1,6 @@
 #include "Scanner.h"
 
 #include <filesystem>
-#include <iostream>
 
 #include "MD5FileHasher.h"
 #include "Hash.h"
@@ -41,65 +40,93 @@ FolderToExamineError Scanner::checkFolderToExamine() const noexcept {
 }
 
 bool Scanner::check() {
+    m_lastCheckErrors.clear();
     bool errorOccured = false;
     if (auto err = m_hashBase.checkBaseFile(); err != BaseError::Ok) {
-        std::cerr << BASE_ERROR_MESSAGES.at(err) << "\n";
+        m_lastCheckErrors.push_back(std::string(BASE_ERROR_MESSAGES.at(err)));
         errorOccured = true;
     }
     if (auto err = m_logger.checkLogFile(); err != LogError::Ok) {
-        std::cerr << LOG_ERROR_MESSAGES.at(err) << "\n";
+        m_lastCheckErrors.push_back(std::string(LOG_ERROR_MESSAGES.at(err)));
         errorOccured = true;
     }
     if (auto err = checkFolderToExamine(); err != FolderToExamineError::Ok) {
-        std::cerr << SCANNER_ERROR_MESSAGES.at(err) << "\n";
+        m_lastCheckErrors.push_back(std::string(SCANNER_ERROR_MESSAGES.at(err)));
         errorOccured = true;
     }
     return !errorOccured;
 }
 
-Scanner::Metrics Scanner::getProcessMetrics() {
-    return {m_processedFiles, m_analysisErrorFiles, m_malwareFiles, m_duration};
+std::vector<std::string> Scanner::getLastCheckErrors() const {
+    return m_lastCheckErrors;
 }
 
-bool Scanner::processFile(const std::string &path) {
-    m_processedFiles++;
-    if (auto hash = MD5FileHasher::fromFile(path); hash) {
-        if (auto verdict = m_hashBase.findIndexedHashVerdict(
-                Kaspersky::Hash::fromString(hash.value())); verdict) {
-            m_logger.log(path, hash.value(), verdict.value());
-            m_malwareFiles++;
+std::vector<std::string> Scanner::getLastScanErrors() const {
+    return m_lastScanErrors;
+}
+
+std::vector<std::pair<std::string, std::optional<std::string>>> Scanner::getLastScanResults() const {
+    return m_lastScanResults;
+}
+
+Scanner::Metrics Scanner::getProcessMetrics() const {
+    return m_metrics;
+}
+
+bool Scanner::processFile(const std::filesystem::path &filePath) {
+    m_metrics.processedFiles++;
+    if (auto hash = MD5FileHasher::fromFile(filePath.string()); hash) {
+        auto verdict = m_hashBase.findIndexedHashVerdict(
+            Kaspersky::Hash::fromString(hash.value()));
+        m_lastScanResults.push_back({filePath.string(), verdict});
+        if (verdict) {
+            m_logger.log(filePath.string(), hash.value(), verdict.value());
+            m_metrics.malwareFiles++;
         }
         return true;
     }
-    m_analysisErrorFiles++;
+    m_metrics.analysisErrorFiles++;
     return false;
 }
 
-bool Scanner::process() {
-    m_processedFiles = 0;
-    m_analysisErrorFiles = 0;
-    m_malwareFiles = 0;
-    m_duration = 0;
+bool Scanner::processDirectory(const std::filesystem::path& directoryPath) {
+    // проверяем, доступна ли директория для чтения
+    std::filesystem::directory_iterator it;
+    try {
+        it = std::filesystem::directory_iterator(directoryPath);
+    } catch (const std::filesystem::filesystem_error& e) {
+        m_lastScanErrors.push_back(directoryPath.string() + " is not readable");
+        return false;
+    }
+    // рекурсивно обходим все элементы в директории
+    bool ok = true;
+    for (const auto& entry : it) {
+        if (std::filesystem::is_directory(entry)) {
+            ok &= processDirectory(entry.path());
+        } else {
+            processFile(entry.path().lexically_normal().string());
+        }
+    }
+    return ok;
+}
+
+ProcessResult Scanner::process() {
+    m_metrics = {};
+    m_lastScanResults.clear();
+    m_lastScanErrors.clear();
     const auto timeStart = std::chrono::high_resolution_clock::now();
 
     if (!check())
-        return false;
+        return ProcessResult::CheckFailed;
 
     m_hashBase.indexBaseFileContent();
 
-    std::filesystem::path root_path(m_folderPathToExamine);
-    try {
-        for (const auto& entry : std::filesystem::recursive_directory_iterator(root_path)) {
-            if (entry.is_directory())
-                continue;
-            processFile(entry.path().lexically_normal().string());
-        }
-    } catch (const std::filesystem::filesystem_error& e) {
-        std::cerr << "Ошибка файловой системы: " << e.what() << std::endl;
-        return false;
-    }
-
+    bool processedSuccesfully = processDirectory(std::filesystem::path(m_folderPathToExamine));
     const auto timeEnd = std::chrono::high_resolution_clock::now();
-    m_duration = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart).count();
-    return true;
+    m_metrics.duration = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart);
+
+    if (!processedSuccesfully)
+        return ProcessResult::ScanCompletedWithErrors;
+
+    return ProcessResult::Ok;
 }

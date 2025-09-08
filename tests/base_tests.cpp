@@ -67,7 +67,7 @@ TEST(Base, FindHash) {
     MalwareHashBase hashBase(BASE_PATH);
     hashBase.indexBaseFileContent();
 
-    for (auto &[hash, verdict] : TO_FIND) {
+    for (const auto &[hash, verdict] : TO_FIND) {
         auto findResult = hashBase.findIndexedHashVerdict(hash);
         EXPECT_EQ(findResult.value_or("<not found>"), verdict);
     }

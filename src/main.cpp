@@ -1,15 +1,14 @@
 #include <iostream>
 #include <string>
-#include <vector>
 #include <cxxopts.hpp>
 
 #include "scanner/Scanner.h"
 
 struct Option {
-    const char* short_opt = nullptr;  //!< Короткая форма (например, "-p")
-    const char* long_opt  = nullptr;  //!< Длинная форма (например, "--path")
-    const char* descr     = nullptr;  //!< Описание назначения опции
-    const char* help      = nullptr;  //!< Пример значения (для справки)
+    const char* short_opt = nullptr;  //!< короткая форма (например, "-p")
+    const char* long_opt  = nullptr;  //!< длинная форма (например, "--path")
+    const char* descr     = nullptr;  //!< описание назначения опции
+    const char* help      = nullptr;  //!< пример значения (для справки)
 };
 
 constexpr Option PATH_OPT = {"p", "path", "Path to folder to check for malicious files", "/folder/"};
@@ -37,6 +36,13 @@ bool check_required_opts(const cxxopts::ParseResult& result, std::initializer_li
     return ok;
 }
 
+void print_metrics(const Scanner::Metrics& metrics) {
+    std::cout << "Time elapsed:      " << metrics.duration.count()   << " ms\n"
+              << "Processed files:   " << metrics.processedFiles     << "\n"
+              << "Malware files:     " << metrics.malwareFiles       << "\n"
+              << "Failed to analyse: " << metrics.analysisErrorFiles << "\n";
+}
+
 int main(int argc, char *argv[]) {
     // подготовка опций
     cxxopts::Options options("Scanner", "Utility for searching malicious files");
@@ -57,6 +63,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+    // вызов спарвки
     if (result.contains(HELP_OPT.long_opt)) {
         std::cout << options.help() << std::endl;
         return 0;
@@ -67,48 +74,30 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // работа основной логики
+    // поиск вредоносных файлов
     Scanner scanner(result[PATH_OPT.long_opt].as<std::string>(),
                     result[BASE_OPT.long_opt].as<std::string>(),
                     result[LOG_OPT.long_opt].as<std::string>());
-    bool ok = scanner.process();
-    if (ok) {
-        auto metrics = scanner.getProcessMetrics();
-        std::cout << "Time elapsed:      " << metrics.duration           << " ms\n" <<
-                     "Processed files:   " << metrics.processedFiles     <<    "\n" <<
-                     "Malware files:     " << metrics.malwareFiles       <<    "\n" <<
-                     "Failed to analyse: " << metrics.analysisErrorFiles <<    "\n";
+    switch (scanner.process()) {
+        case ProcessResult::Ok: {
+            print_metrics(scanner.getProcessMetrics());
+            break;
+        }
+        case ProcessResult::ScanCompletedWithErrors: {
+            print_metrics(scanner.getProcessMetrics());
+            std::cerr << "Scan finished, but following errors occurred:\n";
+            for (const auto& errString : scanner.getLastScanErrors()) {
+                std::cerr << "  " << errString << "\n";
+            }
+            break;
+        }
+        case ProcessResult::CheckFailed: {
+            std::cerr << "The following errors occurred:\n";
+            for (const auto& errString : scanner.getLastCheckErrors()) {
+                std::cerr << "  " << errString << "\n";
+            }
+            break;
+        }
     }
-
-
-
-    // MalwareHashBase base(result[BASE_OPT.long_opt].as<std::string>());
-    // if (BaseError err = base.checkBaseFile(); err != BaseError::Ok) {
-    //     std::cerr << BASE_ERROR_MESSAGES.at(err) << " ";
-    //     return 1;
-    // }
-
-    // Logger logger(result[LOG_OPT.long_opt].as<std::string>());
-    // if (LogError err = logger.checkLogFile(); err != LogError::Ok) {
-    //     std::cerr << LOG_ERROR_MESSAGES.at(err) << " ";
-    //     return 1;
-    // }
-
-    // {
-    //     std::string hash = "8ee70903f43b227eeb971262268af5a8";
-    //     // std::cout << Hash::fromString(hash).toString() << std::endl;
-    //     if (auto verdict = base.findHashVerdict(hash); verdict) {
-    //         logger.log("somefile.txt", hash, verdict.value());
-    //         logger.log("somefile.txt", hash, verdict.value());
-    //     }
-    // }
-    // {
-    //     std::string hash = CHATGPT::MD5::fromFile("C:\\Users\\dimma\\Desktop\\proj\\dummy.txt");
-    //     std::cout << hash << "\n";
-    // }
-    // {
-    //     std::string hash = fromFile("C:\\Users\\dimma\\Desktop\\proj\\dummy.txt");
-    //     std::cout << hash << "\n";
-    // }
     return 0;
 }
