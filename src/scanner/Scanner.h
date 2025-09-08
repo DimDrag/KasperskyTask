@@ -6,6 +6,7 @@
 #include <vector>
 #include <map>
 #include <optional>
+#include <filesystem>
 
 #include "MalwareHashBase.h"
 #include "Logger.h"
