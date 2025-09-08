@@ -10,6 +10,9 @@
 
 namespace Kaspersky {
 
+///
+/// \brief Класс-утилита для получения времени в виде строки
+///
 class Clock {
 public:
     Clock() = delete;

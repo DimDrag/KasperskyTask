@@ -11,10 +11,13 @@ Logger::Logger() {}
 Logger::Logger(const std::string& logPath) {
     m_logPath = logPath;
 }
+
 Logger::~Logger() {
     endLogging();
 }
+
 void Logger::setLogPath(const std::string& logPath) {
+    std::lock_guard<std::mutex> lock(m_mutex);
     endLogging();
     m_logPath = logPath;
 }
@@ -39,9 +42,11 @@ void Logger::printLogBottom() {
 }
 
 void Logger::startLogging() {
-    m_logFile.open(m_logPath, std::ios::out);
-    m_startedLogging = true;
-    printLogHeader();
+    if (!m_startedLogging) {
+        m_logFile.open(m_logPath, std::ios::out);
+        m_startedLogging = true;
+        printLogHeader();
+    }
 }
 
 void Logger::endLogging() {
@@ -55,9 +60,7 @@ void Logger::endLogging() {
 
 void Logger::log(std::string_view pathToFile, std::string_view hash,
                  std::string_view verdict, std::string_view time) {
-    if (!m_startedLogging) {
-        startLogging();
-    }
+    std::lock_guard<std::mutex> lock(m_mutex);
 
     std::string strToWrite;
     if (m_loggedSmth) {
