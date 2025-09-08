@@ -1,12 +1,12 @@
-#ifndef CLOCK_H
-#define CLOCK_H
+#ifndef SRC_UTILS_CLOCK_H_
+#define SRC_UTILS_CLOCK_H_
 
+#include <time.h>
 #include <string>
 #include <chrono>
 #include <ctime>
 #include <sstream>
 #include <iomanip>
-#include <time.h>
 
 namespace Kaspersky {
 
@@ -32,4 +32,4 @@ public:
 };
 
 } // namespace Kaspersky
-#endif // CLOCK_H
+#endif // SRC_UTILS_CLOCK_H_

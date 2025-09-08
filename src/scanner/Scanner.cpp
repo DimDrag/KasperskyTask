@@ -1,6 +1,7 @@
 #include "Scanner.h"
 
 #include <filesystem>
+#include <algorithm>
 
 #include "MD5FileHasher.h"
 #include "Hash.h"

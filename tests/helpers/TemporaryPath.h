@@ -1,5 +1,5 @@
-#ifndef TEMPORARY_PATH_H
-#define TEMPORARY_PATH_H
+#ifndef TESTS_HELPERS_TEMPORARYPATH_H_
+#define TESTS_HELPERS_TEMPORARYPATH_H_
 
 #include <string>
 #if defined(_WIN32) || defined(_WIN64)
@@ -12,7 +12,7 @@
 ///
 class TemporaryPath {
 public:
-    TemporaryPath(const std::string &path);
+    explicit TemporaryPath(const std::string &path);
     TemporaryPath(const TemporaryPath &other) = delete;
     TemporaryPath& operator=(const TemporaryPath& other) = delete;
     virtual ~TemporaryPath();
@@ -34,4 +34,4 @@ private:
 #endif
 };
 
-#endif // TEMPORARY_PATH_H
+#endif // TESTS_HELPERS_TEMPORARYPATH_H_

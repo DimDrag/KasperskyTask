@@ -17,8 +17,7 @@ bool TemporaryDirectory::blockRead() {
         nullptr,
         OPEN_EXISTING,
         FILE_FLAG_BACKUP_SEMANTICS,
-        nullptr
-        );
+        nullptr);
     setHandle(hDir);
     if (hDir == INVALID_HANDLE_VALUE) {
         closeHandle();

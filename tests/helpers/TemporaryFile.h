@@ -1,5 +1,7 @@
-#ifndef TEMPORARY_FILE_H
-#define TEMPORARY_FILE_H
+#ifndef TESTS_HELPERS_TEMPORARYFILE_H_
+#define TESTS_HELPERS_TEMPORARYFILE_H_
+
+#include <string>
 
 #include "TemporaryPath.h"
 
@@ -9,7 +11,7 @@
 ///
 class TemporaryFile : public TemporaryPath {
 public:
-    TemporaryFile(const std::string &path, const std::string &content = "smth");
+    explicit TemporaryFile(const std::string &path, const std::string &content = "smth");
     /// \brief Блокировать чтение файла
     bool blockRead() override;
     /// \brief Блокировать запись в файл
@@ -20,4 +22,4 @@ private:
     bool m_specialModeOn = false; //!< специальный режим установлен для этого файла
 };
 
-#endif // TEMPORARY_FILE_H
+#endif // TESTS_HELPERS_TEMPORARYFILE_H_

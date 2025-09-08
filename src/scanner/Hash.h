@@ -1,6 +1,7 @@
-#ifndef HASH_H
-#define HASH_H
+#ifndef SRC_SCANNER_HASH_H_
+#define SRC_SCANNER_HASH_H_
 
+#include <string>
 #include <string_view>
 #include <charconv>
 #include <sstream>
@@ -44,4 +45,4 @@ struct Hash {
 };
 
 } // namespace Kaspersky
-#endif // HASH_H
+#endif // SRC_SCANNER_HASH_H_

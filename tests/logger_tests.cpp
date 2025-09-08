@@ -1,7 +1,8 @@
-#include "tests.h"
 #include <fstream>
 #include <string_view>
 #include <array>
+
+#include "tests.h"
 
 constexpr std::array<std::string_view, 6> EXPECTED_LOG_RESULT_1 = {
     "----------------Scanner log start----------------",

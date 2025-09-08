@@ -1,5 +1,6 @@
-#include "tests.h"
 #include <vector>
+
+#include "tests.h"
 
 const std::vector<std::pair<std::string, std::string>> TO_FIND = {
     {"babadbf09a7f2244e5c6fce978ae7d04", "Verdict1"},

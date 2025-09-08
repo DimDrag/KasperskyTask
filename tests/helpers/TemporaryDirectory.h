@@ -1,5 +1,7 @@
-#ifndef TEMPORARY_DIRECTORY_H
-#define TEMPORARY_DIRECTORY_H
+#ifndef TESTS_HELPERS_TEMPORARYDIRECTORY_H_
+#define TESTS_HELPERS_TEMPORARYDIRECTORY_H_
+
+#include <string>
 
 #include "TemporaryPath.h"
 
@@ -9,9 +11,9 @@
 ///
 class TemporaryDirectory : public TemporaryPath {
 public:
-    TemporaryDirectory(const std::string &path);
+    explicit TemporaryDirectory(const std::string &path);
     /// \brief Блокировать чтение директории
     bool blockRead() override;
 };
 
-#endif // TEMPORARY_DIRECTORY_H
+#endif // TESTS_HELPERS_TEMPORARYDIRECTORY_H_

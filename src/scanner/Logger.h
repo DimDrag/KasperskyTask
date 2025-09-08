@@ -1,5 +1,5 @@
-#ifndef LOGGER_H
-#define LOGGER_H
+#ifndef SRC_SCANNER_LOGGER_H_
+#define SRC_SCANNER_LOGGER_H_
 
 #include <map>
 #include <string>
@@ -63,4 +63,4 @@ private:
     mutable std::mutex m_mutex;    //!< мьютекс для синхронизации
 };
 
-#endif // LOGGER_H
+#endif // SRC_SCANNER_LOGGER_H_

@@ -20,8 +20,7 @@ bool TemporaryFile::blockRead() {
         nullptr,
         OPEN_EXISTING,
         FILE_ATTRIBUTE_NORMAL,
-        nullptr
-        );
+        nullptr);
     setHandle(hFile);
     if (hFile == INVALID_HANDLE_VALUE) {
         closeHandle();
@@ -50,8 +49,7 @@ bool TemporaryFile::blockWrite() {
         nullptr,
         OPEN_EXISTING,
         FILE_ATTRIBUTE_NORMAL,
-        nullptr
-        );
+        nullptr);
     setHandle(hFile);
     if (hFile == INVALID_HANDLE_VALUE) {
         closeHandle();

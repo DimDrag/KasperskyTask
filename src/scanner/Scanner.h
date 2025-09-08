@@ -1,6 +1,7 @@
-#ifndef SCANNER_H
-#define SCANNER_H
+#ifndef SRC_SCANNER_SCANNER_H_
+#define SRC_SCANNER_SCANNER_H_
 
+#include <utility>
 #include <string>
 #include <chrono>
 #include <vector>
@@ -108,4 +109,4 @@ private:
     std::mutex m_errorsMutex;  //!< мьютекс для ошибок сканирования
 };
 
-#endif // SCANNER_H
+#endif // SRC_SCANNER_SCANNER_H_

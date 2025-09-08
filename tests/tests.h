@@ -1,5 +1,5 @@
-#ifndef TESTS_H
-#define TESTS_H
+#ifndef TESTS_TESTS_H_
+#define TESTS_TESTS_H_
 
 #include <gtest/gtest.h>
 
@@ -13,4 +13,4 @@ constexpr auto DIR_WITH_TEST_FILES = TEST_DATA_DIR"/dir_to_test/";
 constexpr auto BASE_PATH = TEST_DATA_DIR"/base.csv";
 constexpr auto LOG_PATH = TEST_DATA_DIR"/report.log";
 
-#endif  // TESTS_H
+#endif  // TESTS_TESTS_H_

@@ -1,7 +1,8 @@
-#ifndef MD5FILEHASHER_H
-#define MD5FILEHASHER_H
+#ifndef SRC_SCANNER_MD5FILEHASHER_H_
+#define SRC_SCANNER_MD5FILEHASHER_H_
 
 #include <optional>
+#include <string>
 #include <hash-library/md5.h>
 
 ///
@@ -14,4 +15,4 @@ public:
     static std::optional<std::string> fromFile(const std::string& filePath);
 };
 
-#endif // MD5FILEHASHER_H
+#endif // SRC_SCANNER_MD5FILEHASHER_H_
