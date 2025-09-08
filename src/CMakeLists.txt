@@ -1,17 +1,25 @@
 # создание динамической библиотеки scanner_core
-add_library(scanner_core SHARED
+set(SCANNER_CORE_HEADERS
     scanner/Scanner.h
-    scanner/Scanner.cpp
     scanner/Hash.h
     scanner/MalwareHashBase.h
-    scanner/MalwareHashBase.cpp
     scanner/Logger.h
-    scanner/Logger.cpp
     scanner/MD5FileHasher.h
-    scanner/MD5FileHasher.cpp
     utils/Clock.h
     ../external/hash-library/md5.h
+)
+
+set(SCANNER_CORE_SOURCES
+    scanner/Scanner.cpp
+    scanner/MalwareHashBase.cpp
+    scanner/Logger.cpp
+    scanner/MD5FileHasher.cpp
     ../external/hash-library/md5.cpp
+)
+
+add_library(scanner_core SHARED
+    ${SCANNER_CORE_HEADERS}
+    ${SCANNER_CORE_SOURCES}
 )
 
 target_include_directories(scanner_core PRIVATE ${CMAKE_SOURCE_DIR}/external)

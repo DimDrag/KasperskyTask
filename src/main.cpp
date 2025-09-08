@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // поиск вредоносных файлов
+    // запуск сканера
     Scanner scanner(result[PATH_OPT.long_opt].as<std::string>(),
                     result[BASE_OPT.long_opt].as<std::string>(),
                     result[LOG_OPT.long_opt].as<std::string>());
