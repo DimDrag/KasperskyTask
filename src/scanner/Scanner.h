@@ -7,6 +7,11 @@
 #include <map>
 #include <optional>
 #include <filesystem>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <queue>
+#include <atomic>
 
 #include "MalwareHashBase.h"
 #include "Logger.h"
@@ -69,10 +74,20 @@ public:
     /// \brief Возвращает метрики последнего сканирования
     Metrics getProcessMetrics() const;
 private:
-    /// \brief Сканирует указанную папку
-    bool processDirectory(const std::filesystem::path& directoryPath);
-    /// \brief Сканирует указанный файл
-    bool processFile(const std::filesystem::path &filePath);
+    /// \brief Добавляет файлы содержащиеся в указанной папке в очередь обработки.
+    /// Заходит во вложенные папки.
+    /// \return Возвращает false, если возникла ошибка во время обхода (например, нет доступа к папке)
+    bool addFilesInDirectoryToProcessQueue(const std::filesystem::path& directoryPath);
+    /// \brief Добавляет файлв очередь обработки
+    void addFileToProcessQueue(const std::filesystem::path& filePath);
+    /// \brief Рабочий поток, обрабатывающий файлы в очереди
+    void workerThread();
+    /// \brief Обрабатывает файл потокобезопасно
+    /// \return Возвращает false, если не удалось вычислить хэш файла
+    bool processFileThreadSafe(const std::filesystem::path& filePath);
+    /// \brief Обрабатывает файлы в указанной директории в многопоточном режиме
+    /// \return Возвращает false, если возникла ошибка во время обхода (например, нет доступа к папке)
+    bool processDirectoryMultiThread(const std::filesystem::path& directoryPath);
 private:
     std::string     m_folderPathToExamine; //!< путь к папке, в которой будут вычислятся хэши
     MalwareHashBase m_hashBase;            //!< объект базы
@@ -80,7 +95,17 @@ private:
     Metrics         m_metrics{};           //!< краткая информация о проведённом сканировании
     std::vector<std::string> m_lastCheckErrors; //!< список ошибок последней проверки
     std::vector<std::string> m_lastScanErrors;  //!< список ошибок последнего сканирования
-    std::vector<std::pair<std::string, std::optional<std::string>>> m_lastScanResults; //!< результаты последнего сканирования (путь-вердикт)
+    std::vector<std::pair<std::string, std::optional<std::string>>> m_lastScanResults; //!< результаты последнего
+                                                                                       //!< сканирования (путь-вердикт)
+    // организация многопоточного сканирования файлов
+    std::condition_variable m_cv; //!< condition variable для организации пробуждения потока для обработки
+    std::queue<std::filesystem::path> m_fileQueue; //!< очередь файлов на обработку
+    std::atomic<bool> m_queueFormingDone{false}; //!< атомик для отслеживания окончания формирования
+                                                 //!< очереди файлов на обработку
+    std::mutex m_queueMutex;   //!< мьютекс для очереди
+    std::mutex m_metricsMutex; //!< мьютекс для метрик
+    std::mutex m_resultsMutex; //!< мьютекс для результатов сканирования
+    std::mutex m_errorsMutex;  //!< мьютекс для ошибок сканирования
 };
 
 #endif // SCANNER_H

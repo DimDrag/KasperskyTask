@@ -73,43 +73,6 @@ Scanner::Metrics Scanner::getProcessMetrics() const {
     return m_metrics;
 }
 
-bool Scanner::processFile(const std::filesystem::path &filePath) {
-    m_metrics.processedFiles++;
-    if (auto hash = MD5FileHasher::fromFile(filePath.string()); hash) {
-        auto verdict = m_hashBase.findIndexedHashVerdict(
-            Kaspersky::Hash::fromString(hash.value()));
-        m_lastScanResults.push_back({filePath.string(), verdict});
-        if (verdict) {
-            m_logger.log(filePath.string(), hash.value(), verdict.value());
-            m_metrics.malwareFiles++;
-        }
-        return true;
-    }
-    m_metrics.analysisErrorFiles++;
-    return false;
-}
-
-bool Scanner::processDirectory(const std::filesystem::path& directoryPath) {
-    // проверяем, доступна ли директория для чтения
-    std::filesystem::directory_iterator it;
-    try {
-        it = std::filesystem::directory_iterator(directoryPath);
-    } catch (const std::filesystem::filesystem_error& e) {
-        m_lastScanErrors.push_back(directoryPath.string() + " is not readable");
-        return false;
-    }
-    // рекурсивно обходим все элементы в директории
-    bool ok = true;
-    for (const auto& entry : it) {
-        if (std::filesystem::is_directory(entry)) {
-            ok &= processDirectory(entry.path());
-        } else {
-            processFile(entry.path().lexically_normal().string());
-        }
-    }
-    return ok;
-}
-
 ProcessResult Scanner::process() {
     m_metrics = {};
     m_lastScanResults.clear();
@@ -118,10 +81,9 @@ ProcessResult Scanner::process() {
 
     if (!check())
         return ProcessResult::CheckFailed;
-
     m_hashBase.indexBaseFileContent();
+    bool processedSuccesfully = processDirectoryMultiThread(std::filesystem::path(m_folderPathToExamine));
 
-    bool processedSuccesfully = processDirectory(std::filesystem::path(m_folderPathToExamine));
     const auto timeEnd = std::chrono::high_resolution_clock::now();
     m_metrics.duration = std::chrono::duration_cast<std::chrono::milliseconds>(timeEnd - timeStart);
 
@@ -130,3 +92,108 @@ ProcessResult Scanner::process() {
 
     return ProcessResult::Ok;
 }
+
+void Scanner::workerThread() {
+    while (true) {
+        std::filesystem::path filePath;
+        {
+            std::unique_lock<std::mutex> lock(m_queueMutex);
+            m_cv.wait(lock, [&] {
+                return m_queueFormingDone || !m_fileQueue.empty();
+            });
+
+            if (m_queueFormingDone && m_fileQueue.empty()) {
+                return; // очередь пуста и больше нет задач
+            }
+
+            filePath = std::move(m_fileQueue.front());
+            m_fileQueue.pop();
+        }
+        processFileThreadSafe(filePath);
+    }
+}
+
+bool Scanner::processFileThreadSafe(const std::filesystem::path &filePath) {
+    if (auto hash = MD5FileHasher::fromFile(filePath.string()); hash) {
+        auto verdict = m_hashBase.findIndexedHashVerdict(Kaspersky::Hash::fromString(hash.value()));
+        {
+            std::lock_guard<std::mutex> lock(m_resultsMutex);
+            m_lastScanResults.push_back({filePath.string(), verdict});
+        }
+
+        if (verdict) {
+            m_logger.log(filePath.string(), hash.value(), verdict.value());
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(m_metricsMutex);
+            m_metrics.processedFiles++;
+            if (verdict) {
+                m_metrics.malwareFiles++;
+            }
+        }
+        return true;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(m_metricsMutex);
+        m_metrics.processedFiles++;
+        m_metrics.analysisErrorFiles++;
+    }
+    return false;
+}
+
+void Scanner::addFileToProcessQueue(const std::filesystem::path& filePath) {
+    {
+        std::lock_guard<std::mutex> lock(m_queueMutex);
+        m_fileQueue.push(filePath);
+    }
+    m_cv.notify_one();
+}
+
+bool Scanner::addFilesInDirectoryToProcessQueue(const std::filesystem::path& directoryPath) {
+    // проверяем, доступна ли директория для чтения
+    std::filesystem::directory_iterator it;
+    try {
+        it = std::filesystem::directory_iterator(directoryPath);
+    } catch (const std::filesystem::filesystem_error& e) {
+        std::lock_guard<std::mutex> lock(m_errorsMutex);
+        m_lastScanErrors.push_back(directoryPath.string() + " is not readable");
+        return false;
+    }
+    // рекурсивно обходим все элементы в директории
+    bool ok = true;
+    for (const auto& entry : it) {
+        if (std::filesystem::is_directory(entry)) {
+            ok &= addFilesInDirectoryToProcessQueue(entry.path());
+        } else {
+            addFileToProcessQueue(entry.path().lexically_normal().string());
+        }
+    }
+    return ok;
+}
+
+bool Scanner::processDirectoryMultiThread(const std::filesystem::path& directoryPath) {
+    // запуск потоков обработки
+    const unsigned int threadCount = std::max(1u, std::thread::hardware_concurrency());
+    std::vector<std::thread> workers;
+    workers.reserve(threadCount);
+    for (unsigned int i = 0; i < threadCount; ++i) {
+        workers.emplace_back(&Scanner::workerThread, this);
+    }
+
+    // рекурсивный обход
+    bool errorsOccured = addFilesInDirectoryToProcessQueue(directoryPath);
+
+    // сигнал завершения (больше файлов в очередь не добавится)
+    m_queueFormingDone = true;
+    m_cv.notify_all();
+
+    for (auto& w : workers) {
+        w.join();
+    }
+
+    return errorsOccured;
+}
+
+
