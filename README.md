@@ -25,6 +25,12 @@ cmake --build build
 
 Запускать тесты можно из любой директории. Главное не удалять файлы, лежащие в tests/data, поскольку это "тренировочные" файлы для тестов.
 
+Обновлять зависимости можно с помощью команды
+
+```bash
+git submodule update --init --recursive
+```
+
 ## Логи
 
 Помимо пути к "вредоносному" файлу, его хэшу и вердикту, в файл лога пишется время записи лога. Пример содержимого файла лога:
@@ -40,7 +46,7 @@ Verdict:   verdict
 
 ## Запуск
 
-По окончанию сканирования указанной папки, утилита выдаст краткую информацию о сканировании, а также информацию о папках, в которые не удалось зайти. Я посчитал, что игнорировать такой случай нельзя и об этом нужно явно сказать пользователю. Пример вывода утилиты, если ей встретились недоступные папки.
+По окончанию сканирования указанной папки, помимо краткой информации о сканировании утилита выдаст также информацию о папках, в которые не удалось зайти. Я посчитал, что нельзя молча пропускать такие ошибки и об этом нужно явно сказать пользователю. Пример вывода утилиты, если ей встретились недоступные папки:
 
 ```
 Time elapsed:      6735 ms
@@ -50,4 +56,24 @@ Failed to analyse: 4
 Scan finished, but following errors occurred:
   C:\Users\user\testdir\no_read_dir is not readable
   C:\Users\user\testdir\subdir\no_read_dir2 is not readable
+```
+
+Если утилите не указать необходимые параметры, она явно об этом сообщит
+
+```
+Missing required option: --path
+  Path to folder to check for malicious files
+Missing required option: --base
+  Path to file with malicious hash database
+Missing required option: --log
+  Path to log file
+```
+
+Если указанные опции неправильные, пользователю также будет дан подробный ответ
+
+```
+The following errors occurred:
+  Incorrect database file extension
+  The specified log file path is not a file
+  The specified directory path does not exist
 ```
